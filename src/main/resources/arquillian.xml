@@ -16,7 +16,7 @@
         
         <!-- As jvm.properties.debug and nospace is supposed to be empty by default the VmArguments would contains space
           and container won't start - we need some fake -D argument for not having just space here -->
-  		<property name="javaVmArguments">-Dfake=true ${jvm.args.byteman:} ${jvm.properties.debug:} ${loaded.properties.nospace:}</property>
+  		<property name="javaVmArguments">-Dfake=true ${jvm.args.byteman:} ${jvm.args.debug:}</property>
     </configuration>
   </container>
   

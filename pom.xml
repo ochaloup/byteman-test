@@ -17,6 +17,7 @@
     <!-- Path to jar files from local repository - the propeties are filled by maven-dependency-plugin  -->
     <jar.path.byteman>${org.jboss.byteman:byteman:jar}</jar.path.byteman>
     <jar.path.byteman-dtest>${org.jboss.byteman:byteman-dtest:jar}</jar.path.byteman-dtest>
+    <jar.path.byteman-submit>${org.jboss.byteman:byteman-submit:jar}</jar.path.byteman-submit>
     <byteman.home>${project.build.directory}/byteman</byteman.home>
     
     <version.arquillian.core>1.1.1.Final</version.arquillian.core>
@@ -109,7 +110,7 @@
         </executions>
       </plugin>
       
-      <!-- Second possibility how to get byteman jars to some specific place and then use absolute path of them-->
+      <!-- Second possibility how to get byteman jars to some specific place and then use absolute path of them
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -138,7 +139,8 @@
                 </configuration>
             </execution>
         </executions>
-    </plugin>
+      </plugin> -->
+    
     </plugins>
   </build>
   
@@ -191,17 +193,17 @@
         <byteman.port.number>9091</byteman.port.number>
         <byteman.rmi.registry.port.number>1199</byteman.rmi.registry.port.number>
         <jvm.args.byteman>
-        -Dorg.jboss.byteman.debug=true -Dorg.jboss.byteman.verbose=true -Dorg.jboss.byteman.contrib.dtest.rmiregistry.port=${byteman.rmi.registry.port.number}
+            -Dorg.jboss.byteman.debug=true -Dorg.jboss.byteman.verbose=true -Dorg.jboss.byteman.contrib.dtest.rmiregistry.port=${byteman.rmi.registry.port.number}
             -Djboss.modules.system.pkgs=org.jboss.byteman
-            -javaagent:${byteman.home}/byteman.jar=address:${jboss.address},port:${byteman.port.number},listener:true,sys:${byteman.home}/byteman-dtest.jar
+            -javaagent:${jar.path.byteman}=address:${jboss.address},port:${byteman.port.number},listener:true,sys:${jar.path.byteman-dtest},sys:${jar.path.byteman-submit}
         </jvm.args.byteman>
-        <!-- 
+        <!-- When running Arquillian @AsClient byteman-submit is not needed to be on classpath
         <jvm.args.byteman>
             -Dorg.jboss.byteman.debug=true -Dorg.jboss.byteman.verbose=true -Dorg.jboss.byteman.contrib.dtest.rmiregistry.port=${byteman.rmi.registry.port.number}
             -Djboss.modules.system.pkgs=org.jboss.byteman
             -javaagent:${jar.path.byteman}=address:${jboss.address},port:${byteman.port.number},listener:true,sys:${jar.path.byteman-dtest}
         </jvm.args.byteman>
-         -->        
+         -->
     </properties>
     </profile>
       

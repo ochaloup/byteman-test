@@ -1,8 +1,9 @@
 package org.jboss.qa;
 
 import java.rmi.RemoteException;
+import java.util.concurrent.Future;
 
-import javax.ejb.EJB;
+import javax.inject.Inject;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
@@ -11,10 +12,11 @@ import org.jboss.byteman.agent.submit.Submit;
 import org.jboss.byteman.contrib.dtest.Instrumentor;
 import org.jboss.logging.Logger;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
-import org.junit.BeforeClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -26,25 +28,26 @@ public class BytemanTestCase {
   protected static Instrumentor instrumentor = null;
   protected static Submit instrumentorSubmit = null;
   
-  @EJB
+  @Inject
   RemoteBeanAsync asyncBean;
   
-  @EJB
+  @Inject
   RemoteBean syncBean;
   
   @Deployment(name = DEPLOYMENT_NAME)
-  @TargetsContainer("jboss_managed")
+  @TargetsContainer(TestProperties.JBOSS_CONTAINER_MANAGED)
   public static JavaArchive createDeployment() {
     return ShrinkWrap.create(JavaArchive.class, DEPLOYMENT_NAME + ".jar")
         .addPackage(RemoteBean.class.getPackage());
         // .addAsManifestResource(new StringAsset("Dependencies: org.jboss.jts\n"), "MANIFEST.MF");
-        // .addAsManifestResource(new StringAsset("Dependencies: org.jboss.byteman\n"), "MANIFEST.MF");
   }
   
-  @BeforeClass
-  public static void beforeClass() throws RemoteException {
-    instrumentorSubmit = new Submit(TestProperties.JBOSS_ADDRESS, TestProperties.BYTEMAN_PORT);
-    instrumentor = new Instrumentor(instrumentorSubmit, TestProperties.BYTEMAN_RMI_REGISTRY_PORT);
+  @Before
+  public void beforeClass() throws RemoteException {
+    if(instrumentor == null) {
+      instrumentorSubmit = new Submit(TestProperties.JBOSS_ADDRESS, TestProperties.BYTEMAN_PORT);
+      instrumentor = new Instrumentor(instrumentorSubmit, TestProperties.BYTEMAN_RMI_REGISTRY_PORT);
+    }
   }
   
   @After
@@ -53,7 +56,7 @@ public class BytemanTestCase {
       instrumentor.removeLocalState();
       instrumentor.removeAllInstrumentation();
     } catch (Exception e) {
-      log.debug("Instrumentator fails with removing instrumentations", e);
+      log.info("Instrumentator fails with removing instrumentations", e);
     }
   }
   
@@ -63,9 +66,39 @@ public class BytemanTestCase {
     asyncBean.call();
   }
   
+  @Ignore
   @Test
-  public void bytemanCall() {
-    
+  public void bytemanCrash() throws Exception {
+    instrumentor.crashAtMethodEntry(SLSBean.class, "call");
+    syncBean.call();
   }
 
+  @Test
+  public void waitFor() throws Exception {
+    String waitForName = "slsbeanwait";
+    String waitScriptString = "RULE wait for call \n" +
+        "CLASS " + SLBBeanAsync.class + "\n" +
+        "METHOD callAndReturn() \n" +
+        "AT ENTRY \n" +
+        "BIND NOTHING \n" +
+        "IF TRUE \n" +
+        "DO waitFor(\"" + waitForName + "\") \n" +
+        "ENDRULE";
+    instrumentor.installScript("waitForSyncEJBCall", waitScriptString);
+    
+    String awakeScriptString= "RULE awake sleeping one \n" +
+        "CLASS " + SLSBean.class + "\n" +
+        "METHOD call() \n" +
+        "AT ENTRY \n" +
+        "BIND NOTHING \n" +
+        "IF TRUE \n" +
+        "DO signalWake(\"" + waitForName + "\", true) \n" +
+        "ENDRULE";
+    instrumentor.installScript("awakeSleepingAsyncBean", awakeScriptString);
+    
+    Future<String> future = asyncBean.callAndReturn();
+    log.info("Waiting for 3 seconds");
+    Thread.sleep(3000);
+    Assert.assertFalse("Expecting that future object is not done byteman script stopped it", future.isDone());
+  }
 }
