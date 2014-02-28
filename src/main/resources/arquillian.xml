@@ -4,6 +4,7 @@
   
   <!-- Check https://github.com/wildfly/quickstart -->
   <defaultProtocol type="Servlet 3.0" />
+  <!-- <defaultProtocol type="jmx-as7" />  -->
   
   <container qualifier="jboss_managed" default="true">
     <configuration>

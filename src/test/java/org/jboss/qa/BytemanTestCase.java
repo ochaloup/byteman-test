@@ -11,6 +11,7 @@ import org.jboss.byteman.agent.submit.Submit;
 import org.jboss.byteman.contrib.dtest.Instrumentor;
 import org.jboss.logging.Logger;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -37,6 +38,7 @@ public class BytemanTestCase {
     return ShrinkWrap.create(JavaArchive.class, DEPLOYMENT_NAME + ".jar")
         .addPackage(RemoteBean.class.getPackage());
         // .addAsManifestResource(new StringAsset("Dependencies: org.jboss.jts\n"), "MANIFEST.MF");
+        // .addAsManifestResource(new StringAsset("Dependencies: org.jboss.byteman\n"), "MANIFEST.MF");
   }
   
   @BeforeClass
