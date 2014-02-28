@@ -66,8 +66,8 @@ public class BytemanTestCase {
     asyncBean.call();
   }
   
-  @Ignore
   @Test
+  @Ignore
   public void bytemanCrash() throws Exception {
     instrumentor.crashAtMethodEntry(SLSBean.class, "call");
     syncBean.call();
@@ -77,9 +77,10 @@ public class BytemanTestCase {
   public void waitFor() throws Exception {
     String waitForName = "slsbeanwait";
     String waitScriptString = "RULE wait for call \n" +
-        "CLASS " + SLBBeanAsync.class + "\n" +
-        "METHOD callAndReturn() \n" +
-        "AT ENTRY \n" +
+        "CLASS " + SLSBeanAsync.class.getName() + "\n" +
+        "METHOD callAndReturn \n" +
+        // "HELPER org.jboss.byteman.contrib.dtest.BytemanTestHelper \n " +
+        // "AT ENTRY \n" +
         "BIND NOTHING \n" +
         "IF TRUE \n" +
         "DO waitFor(\"" + waitForName + "\") \n" +
@@ -87,9 +88,10 @@ public class BytemanTestCase {
     instrumentor.installScript("waitForSyncEJBCall", waitScriptString);
     
     String awakeScriptString= "RULE awake sleeping one \n" +
-        "CLASS " + SLSBean.class + "\n" +
-        "METHOD call() \n" +
-        "AT ENTRY \n" +
+        "CLASS " + SLSBean.class.getName() + "\n" +
+        "METHOD call \n" +
+        // "HELPER org.jboss.byteman.contrib.dtest.BytemanTestHelper \n " +
+        // "AT ENTRY \n" +
         "BIND NOTHING \n" +
         "IF TRUE \n" +
         "DO signalWake(\"" + waitForName + "\", true) \n" +
@@ -100,5 +102,9 @@ public class BytemanTestCase {
     log.info("Waiting for 3 seconds");
     Thread.sleep(3000);
     Assert.assertFalse("Expecting that future object is not done byteman script stopped it", future.isDone());
+    
+    syncBean.call();
+    Thread.sleep(1000);
+    Assert.assertTrue("Expecting that future is returned as byteman script for awaken was already called", future.isDone());
   }
 }
