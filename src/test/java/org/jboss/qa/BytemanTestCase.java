@@ -34,6 +34,9 @@ public class BytemanTestCase {
   @Inject
   RemoteBean syncBean;
   
+  @Inject
+  SingletonStorageRemote singletonStorage;
+  
   @Deployment(name = DEPLOYMENT_NAME)
   @TargetsContainer(TestProperties.JBOSS_CONTAINER_MANAGED)
   public static JavaArchive createDeployment() {
@@ -106,5 +109,39 @@ public class BytemanTestCase {
     syncBean.call();
     Thread.sleep(1000);
     Assert.assertTrue("Expecting that future is returned as byteman script for awaken was already called", future.isDone());
+  }
+  
+  @Test
+  public void rendezvous() throws Exception {
+    String rendezvousName = "slsbean-rendezvous";
+    String createRendezvous = "RULE create rendezvous \n" +
+        "CLASS " + SLSBeanAsync.class.getName() + "\n" +
+        "METHOD <init> \n" +
+        "BIND NOTHING \n" +
+        "IF createRendezvous(\""+ rendezvousName + "\", 3) \n" +
+        "DO traceln(\"Creating rendezvous " + rendezvousName + "\") \n" +
+        "ENDRULE";
+    instrumentor.installScript("createRendezvous", createRendezvous);
+    String hitRendezvous = "RULE hit rendezvous \n" +
+        "CLASS " + SLSBeanAsync.class.getName() + "\n" +
+        "METHOD callSynchronized(java.lang.String) \n" +
+        "BIND NOTHING \n" +
+        "IF true \n" +
+        "DO rendezvous(\"" + rendezvousName + "\") \n" +
+        "ENDRULE";
+    instrumentor.installScript("hitRendezvous", hitRendezvous);
+    
+    singletonStorage.clearStringStorage();
+    
+    Future<String> future1 = asyncBean.callSynchronized("1");
+    Future<String> future2 = asyncBean.callSynchronized("2");
+    Assert.assertFalse("First async call should wait on rendezvous", future1.isDone());
+    Assert.assertFalse("Second async call should wait on rendezvous", future2.isDone());
+    
+    Future<String> future3 = asyncBean.callSynchronized("3");
+    Thread.sleep(1000);
+    Assert.assertTrue("Third async call should be freed from rendezvous", future3.isDone());
+    Assert.assertEquals("Rendezvous should be released and all data added in singleton storage "
+        + "the length of the saved data is not correct", 3, singletonStorage.getStringStorage().length());
   }
 }
