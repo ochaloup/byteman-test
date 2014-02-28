@@ -11,10 +11,7 @@
         <property name="serverConfig">${jboss.server.config.file.name:standalone-full.xml}</property>
         <!-- -Dcom.arjuna.ats.arjuna.coordinator.commitOnePhase=false -DCoordinatorEnvironmentBean.commitOnePhase=false -->
         
-        <!-- 
         <property name="managementAddress">${jboss.address:127.0.0.1}</property>
-        <property name="managementPort">8080</property>
-         -->
         
         <!-- As jvm.properties.debug and nospace is supposed to be empty by default the VmArguments would contains space
           and container won't start - we need some fake -D argument for not having just space here -->

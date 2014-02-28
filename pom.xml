@@ -74,13 +74,11 @@
       <groupId>org.jboss.byteman</groupId>
       <artifactId>byteman</artifactId>
       <version>${version.byteman}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.jboss.byteman</groupId>
       <artifactId>byteman-dtest</artifactId>
       <version>${version.byteman}</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
   
@@ -129,6 +127,10 @@
                 <arquillian.launch>jboss_managed</arquillian.launch>
                 <jboss.dist>${jboss.dist}</jboss.dist>
                 <jboss.address>${jboss.address}</jboss.address>
+                
+                <byteman.port.number>${byteman.port.number}</byteman.port.number>
+                <byteman.rmi.registry.port.number>${byteman.rmi.registry.port.number}</byteman.rmi.registry.port.number>
+                
                 <jvm.args.byteman>${jvm.args.byteman}</jvm.args.byteman>
                 <jvm.args.debug>${jvm.args.debug}</jvm.args.debug>
               </systemPropertyVariables>
@@ -153,18 +155,11 @@
         </property>
       </activation>
       <properties>
-        <jbossas.ts.integ.dir>${basedir}/..</jbossas.ts.integ.dir>
-        <jbossas.ts.dir>${jbossas.ts.integ.dir}/..</jbossas.ts.dir>
-        <jbossas.project.dir>${jbossas.ts.dir}/..</jbossas.project.dir>
-         <!-- Test directory where the test in fact really reside. In fact this is base dir now -->
-        <jbossas.ts.jbossts.dir>${basedir}</jbossas.ts.jbossts.dir>
-
-        <byteman.home>${project.build.directory}/byteman</byteman.home>
         <byteman.port.number>9091</byteman.port.number>
         <byteman.rmi.registry.port.number>1199</byteman.rmi.registry.port.number>
         <jvm.args.byteman>
             -Dorg.jboss.byteman.debug=true -Dorg.jboss.byteman.verbose=true -Dorg.jboss.byteman.contrib.dtest.rmiregistry.port=${byteman.rmi.registry.port.number}
-            -Djboss.modules.system.pkgs=org.jboss.byteman
+            -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/p:${jar.path.byteman}
             -javaagent:${jar.path.byteman}=address:${jboss.address},port:${byteman.port.number},listener:true,sys:${jar.path.byteman-dtest}
         </jvm.args.byteman>        
     </properties>
