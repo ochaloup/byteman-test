@@ -3,6 +3,7 @@ package org.jboss.qa;
 import java.rmi.RemoteException;
 import java.util.concurrent.Future;
 
+import javax.ejb.EJBException;
 import javax.inject.Inject;
 
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -51,15 +52,18 @@ public class BytemanTestCase {
       instrumentorSubmit = new Submit(TestProperties.JBOSS_ADDRESS, TestProperties.BYTEMAN_PORT);
       instrumentor = new Instrumentor(instrumentorSubmit, TestProperties.BYTEMAN_RMI_REGISTRY_PORT);
     }
+    
+    // cleaning singleton
+    singletonStorage.clearStringStorage();
   }
   
   @After
   public void tearDown() {
     try {
-      instrumentor.removeLocalState();
       instrumentor.removeAllInstrumentation();
+      instrumentor.removeLocalState();
     } catch (Exception e) {
-      log.info("Instrumentator fails with removing instrumentations", e);
+      log.warn("Instrumentator fails with removing instrumentations", e);
     }
   }
   
@@ -67,6 +71,28 @@ public class BytemanTestCase {
   public void call() {
     syncBean.call();
     asyncBean.call();
+  }
+  
+  @Test
+  public void callException() throws Exception {
+    instrumentor.injectFault(SLSBean.class, "call", IllegalArgumentException.class, new Object[]{});
+    try {
+      syncBean.call();
+    } catch (EJBException ejbe) {
+      if(ejbe.getCause() instanceof IllegalArgumentException) {
+        return;
+      }
+    }
+    Assert.fail("Expected IllegalArgument exception being thrown");
+  }
+  
+  @Test
+  public void callInvoke() throws Exception {
+    String injectCallString = "hello";
+    instrumentor.injectOnCall(SLSBean.class, "call()", "$0.call(\"" + injectCallString + "\")");
+    syncBean.call();
+    Assert.assertEquals("Expecting that byteman propagated call to storage contains " + injectCallString, injectCallString, singletonStorage.getStringStorage());
+    
   }
   
   @Test
@@ -130,8 +156,6 @@ public class BytemanTestCase {
         "DO rendezvous(\"" + rendezvousName + "\") \n" +
         "ENDRULE";
     instrumentor.installScript("hitRendezvous", hitRendezvous);
-    
-    singletonStorage.clearStringStorage();
     
     Future<String> future1 = asyncBean.callSynchronized("1");
     Future<String> future2 = asyncBean.callSynchronized("2");
