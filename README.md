@@ -5,6 +5,6 @@ Testing project of byteman dtest library. This is an example how the dtest libra
 
 Check the pom.xml, arquillian.xml and the sources of the test. 
 
-For checking the test you can run
-`export JBOSS_HOME=/path/to/wildfly
-mvn test`
+For checking the test you can run<br/>
+`export JBOSS_HOME=/path/to/wildfly`<br/>
+`mvn test`
