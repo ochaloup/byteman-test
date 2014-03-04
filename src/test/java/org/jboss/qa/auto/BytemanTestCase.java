@@ -1,4 +1,4 @@
-package org.jboss.qa;
+package org.jboss.qa.auto;
 
 import java.rmi.RemoteException;
 import java.util.concurrent.Future;
@@ -12,6 +12,12 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.byteman.agent.submit.Submit;
 import org.jboss.byteman.contrib.dtest.Instrumentor;
 import org.jboss.logging.Logger;
+import org.jboss.qa.RemoteBean;
+import org.jboss.qa.RemoteBeanAsync;
+import org.jboss.qa.SLSBean;
+import org.jboss.qa.SLSBeanAsync;
+import org.jboss.qa.SingletonStorageRemote;
+import org.jboss.qa.common.TestProperties;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
@@ -39,10 +45,11 @@ public class BytemanTestCase {
   SingletonStorageRemote singletonStorage;
   
   @Deployment(name = DEPLOYMENT_NAME)
-  @TargetsContainer(TestProperties.JBOSS_CONTAINER_MANAGED)
+  @TargetsContainer(TestProperties.JBOSS_CONTAINER_AUTO)
   public static JavaArchive createDeployment() {
     return ShrinkWrap.create(JavaArchive.class, DEPLOYMENT_NAME + ".jar")
-        .addPackage(RemoteBean.class.getPackage());
+        .addPackage(RemoteBean.class.getPackage())
+        .addPackage(TestProperties.class.getPackage());
         // .addAsManifestResource(new StringAsset("Dependencies: org.jboss.jts\n"), "MANIFEST.MF");
   }
   

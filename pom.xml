@@ -141,6 +141,18 @@
         </executions>
       </plugin> -->
     
+    
+      <!-- This is needed for tests won't be executed under default config 'test-default'
+        but all execution will run with executions configured under arquillian profile -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    
     </plugins>
   </build>
   
@@ -158,8 +170,8 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <version>${version.maven.surefire}</version>
             <configuration>
+              <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <systemPropertyVariables>
-                <arquillian.launch>jboss_managed</arquillian.launch>
                 <jboss.dist>${jboss.dist}</jboss.dist>
                 <jboss.address>${jboss.address}</jboss.address>
                 
@@ -170,9 +182,50 @@
                 <jvm.args.debug>${jvm.args.debug}</jvm.args.debug>
               </systemPropertyVariables>
             </configuration>
+            <executions>
+              <execution>
+                <id>auto-mode</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+                <configuration>
+                  <includes>
+                    <include>**/auto/**/*TestCase.java</include>
+                  </includes>
+                  <excludes>
+                    <exclude>**/manual/**/*TestCase.java</exclude>
+                  </excludes>
+                  <systemPropertyVariables>
+                    <arquillian.launch>jboss-auto</arquillian.launch>
+                  </systemPropertyVariables>
+                  <reportNameSuffix>auto</reportNameSuffix>
+                </configuration>
+              </execution>
+              <execution>
+                <id>manual-mode</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+                <configuration>
+                  <includes>
+                    <include>**/manual/**/*TestCase.java</include>
+                  </includes>
+                  <excludes>
+                    <exclude>**/auto/**/*TestCase.java</exclude>
+                  </excludes>
+                  <systemPropertyVariables>
+                    <arquillian.launch>jboss-manual</arquillian.launch>
+                  </systemPropertyVariables>
+                  <reportNameSuffix>manual</reportNameSuffix>
+                </configuration>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>
+      
       <dependencies>
         <dependency>
           <groupId>org.wildfly</groupId>

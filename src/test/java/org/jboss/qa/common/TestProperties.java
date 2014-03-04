@@ -1,8 +1,8 @@
-package org.jboss.qa;
+package org.jboss.qa.common;
 
 public class TestProperties {
-  public static final String JBOSS_CONTAINER_MANUAL = "jboss_manual";
-  public static final String JBOSS_CONTAINER_MANAGED = "jboss_managed";
+  public static final String JBOSS_CONTAINER_MANUAL = "jboss-manual";
+  public static final String JBOSS_CONTAINER_AUTO = "jboss-auto";
   
   public static final String JBOSS_ADDRESS = System.getProperty("jboss.address", "localhost");
   

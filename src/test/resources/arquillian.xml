@@ -6,28 +6,24 @@
   <defaultProtocol type="Servlet 3.0" />
   <!-- <defaultProtocol type="jmx-as7" />  -->
   
-  <container qualifier="jboss_managed" default="true">
+  <container qualifier="jboss-auto" mode="suite" default="true">
     <configuration>
     	<property name="jbossHome">${jboss.dist}</property>
         <property name="serverConfig">${jboss.server.config.file.name:standalone-full.xml}</property>
         <!-- -Dcom.arjuna.ats.arjuna.coordinator.commitOnePhase=false -DCoordinatorEnvironmentBean.commitOnePhase=false -->
-        
         <property name="managementAddress">${jboss.address:127.0.0.1}</property>
-        
         <!-- As jvm.properties.debug and nospace is supposed to be empty by default the VmArguments would contains space
           and container won't start - we need some fake -D argument for not having just space here -->
-  		<property name="javaVmArguments">-Dfake=true ${jvm.args.byteman:} ${jvm.args.debug:}</property>
+  		<property name="javaVmArguments">-Dauto ${jvm.args.byteman:} ${jvm.args.debug:}</property>
     </configuration>
   </container>
-  
-  <!-- 
-  <container qualifier="jboss_manual" mode="manual">
+   
+  <container qualifier="jboss-manual" mode="manual">
     <configuration>
     	<property name="jbossHome">${jboss.dist}</property>
         <property name="serverConfig">${jboss.server.config.file.name:standalone-full.xml}</property>
         <property name="managementAddress">${jboss.address:127.0.0.1}</property>
-  		<property name="javaVmArguments">-Dfake=true ${jvm.args.byteman:} ${jvm.properties.debug:} ${loaded.properties.nospace:}</property>
+  		<property name="javaVmArguments">-Dmanual ${jvm.args.byteman:} ${jvm.args.debug:}</property>
     </configuration>
   </container>
-   -->
 </arquillian>
