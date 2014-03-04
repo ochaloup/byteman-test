@@ -3,11 +3,11 @@ package org.jboss.qa.auto;
 import java.rmi.RemoteException;
 import java.util.concurrent.Future;
 
+import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.inject.Inject;
 
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.byteman.agent.submit.Submit;
 import org.jboss.byteman.contrib.dtest.Instrumentor;
@@ -35,17 +35,16 @@ public class BytemanTestCase {
   protected static Instrumentor instrumentor = null;
   protected static Submit instrumentorSubmit = null;
   
-  @Inject
+  @EJB
   RemoteBeanAsync asyncBean;
   
-  @Inject
+  @EJB
   RemoteBean syncBean;
   
   @Inject
   SingletonStorageRemote singletonStorage;
   
   @Deployment(name = DEPLOYMENT_NAME)
-  @TargetsContainer(TestProperties.JBOSS_CONTAINER_AUTO)
   public static JavaArchive createDeployment() {
     return ShrinkWrap.create(JavaArchive.class, DEPLOYMENT_NAME + ".jar")
         .addPackage(RemoteBean.class.getPackage())
@@ -76,15 +75,15 @@ public class BytemanTestCase {
   
   @Test
   public void call() {
-    syncBean.call();
+    syncBean.callVoid();
     asyncBean.call();
   }
   
   @Test
   public void callException() throws Exception {
-    instrumentor.injectFault(SLSBean.class, "call", IllegalArgumentException.class, new Object[]{});
+    instrumentor.injectFault(SLSBean.class, "callVoid", IllegalArgumentException.class, new Object[]{});
     try {
-      syncBean.call();
+      syncBean.callVoid();
     } catch (EJBException ejbe) {
       if(ejbe.getCause() instanceof IllegalArgumentException) {
         return;
@@ -96,8 +95,8 @@ public class BytemanTestCase {
   @Test
   public void callInvoke() throws Exception {
     String injectCallString = "hello";
-    instrumentor.injectOnCall(SLSBean.class, "call()", "$0.call(\"" + injectCallString + "\")");
-    syncBean.call();
+    instrumentor.injectOnCall(SLSBean.class, "callVoid()", "$0.call(\"" + injectCallString + "\")");
+    syncBean.callVoid();
     Assert.assertEquals("Expecting that byteman propagated call to storage contains " + injectCallString, injectCallString, singletonStorage.getStringStorage());
     
   }
@@ -106,7 +105,7 @@ public class BytemanTestCase {
   @Ignore
   public void bytemanCrash() throws Exception {
     instrumentor.crashAtMethodEntry(SLSBean.class, "call");
-    syncBean.call();
+    syncBean.callVoid();
   }
 
   @Test
@@ -125,7 +124,7 @@ public class BytemanTestCase {
     
     String awakeScriptString= "RULE awake sleeping one \n" +
         "CLASS " + SLSBean.class.getName() + "\n" +
-        "METHOD call \n" +
+        "METHOD callVoid \n" +
         // "HELPER org.jboss.byteman.contrib.dtest.BytemanTestHelper \n " +
         // "AT ENTRY \n" +
         "BIND NOTHING \n" +
@@ -139,7 +138,7 @@ public class BytemanTestCase {
     Thread.sleep(3000);
     Assert.assertFalse("Expecting that future object is not done byteman script stopped it", future.isDone());
     
-    syncBean.call();
+    syncBean.callVoid();
     Thread.sleep(1000);
     Assert.assertTrue("Expecting that future is returned as byteman script for awaken was already called", future.isDone());
   }

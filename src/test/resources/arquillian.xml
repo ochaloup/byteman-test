@@ -18,12 +18,7 @@
     </configuration>
   </container>
    
+  <!-- All Java VM properteis are provided inside of the test -->
   <container qualifier="jboss-manual" mode="manual">
-    <configuration>
-    	<property name="jbossHome">${jboss.dist}</property>
-        <property name="serverConfig">${jboss.server.config.file.name:standalone-full.xml}</property>
-        <property name="managementAddress">${jboss.address:127.0.0.1}</property>
-  		<property name="javaVmArguments">-Dmanual ${jvm.args.byteman:} ${jvm.args.debug:}</property>
-    </configuration>
   </container>
 </arquillian>

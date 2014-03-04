@@ -13,8 +13,8 @@ public class SLSBean implements RemoteBean {
   SingletonStorageRemote singletonStorage;
   
   @Override
-  public void call() {
-    log.info("Calling call()");    
+  public void callVoid() {
+    log.info("Calling callVoid()");    
   }
 
   @Override
