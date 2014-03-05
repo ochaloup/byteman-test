@@ -119,7 +119,7 @@ public class BytemanTestCase {
         "BIND NOTHING \n" +
         "IF TRUE \n" +
         "DO waitFor(\"" + waitForName + "\") \n" +
-        "ENDRULE";
+        "ENDRULE \n";
     instrumentor.installScript("waitForSyncEJBCall", waitScriptString);
     
     String awakeScriptString= "RULE awake sleeping one \n" +
@@ -130,7 +130,7 @@ public class BytemanTestCase {
         "BIND NOTHING \n" +
         "IF TRUE \n" +
         "DO signalWake(\"" + waitForName + "\", true) \n" +
-        "ENDRULE";
+        "ENDRULE \n";
     instrumentor.installScript("awakeSleepingAsyncBean", awakeScriptString);
     
     Future<String> future = asyncBean.callAndReturn();
@@ -152,7 +152,7 @@ public class BytemanTestCase {
         "BIND NOTHING \n" +
         "IF createRendezvous(\""+ rendezvousName + "\", 3) \n" +
         "DO traceln(\"Creating rendezvous " + rendezvousName + "\") \n" +
-        "ENDRULE";
+        "ENDRULE \n";
     instrumentor.installScript("createRendezvous", createRendezvous);
     String hitRendezvous = "RULE hit rendezvous \n" +
         "CLASS " + SLSBeanAsync.class.getName() + "\n" +
@@ -160,7 +160,7 @@ public class BytemanTestCase {
         "BIND NOTHING \n" +
         "IF true \n" +
         "DO rendezvous(\"" + rendezvousName + "\") \n" +
-        "ENDRULE";
+        "ENDRULE \n";
     instrumentor.installScript("hitRendezvous", hitRendezvous);
     
     Future<String> future1 = asyncBean.callSynchronized("1");
