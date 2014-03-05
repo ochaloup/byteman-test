@@ -75,15 +75,15 @@ public class BytemanTestCase {
   
   @Test
   public void call() {
-    syncBean.callVoid();
+    syncBean.call();
     asyncBean.call();
   }
   
   @Test
   public void callException() throws Exception {
-    instrumentor.injectFault(SLSBean.class, "callVoid", IllegalArgumentException.class, new Object[]{});
+    instrumentor.injectFault(SLSBean.class, "call", IllegalArgumentException.class, new Object[]{});
     try {
-      syncBean.callVoid();
+      syncBean.call();
     } catch (EJBException ejbe) {
       if(ejbe.getCause() instanceof IllegalArgumentException) {
         return;
@@ -95,8 +95,8 @@ public class BytemanTestCase {
   @Test
   public void callInvoke() throws Exception {
     String injectCallString = "hello";
-    instrumentor.injectOnCall(SLSBean.class, "callVoid()", "$0.call(\"" + injectCallString + "\")");
-    syncBean.callVoid();
+    instrumentor.injectOnCall(SLSBean.class, "call()", "$0.call(\"" + injectCallString + "\")");
+    syncBean.call();
     Assert.assertEquals("Expecting that byteman propagated call to storage contains " + injectCallString, injectCallString, singletonStorage.getStringStorage());
     
   }
@@ -105,7 +105,7 @@ public class BytemanTestCase {
   @Ignore
   public void bytemanCrash() throws Exception {
     instrumentor.crashAtMethodEntry(SLSBean.class, "call");
-    syncBean.callVoid();
+    syncBean.call();
   }
 
   @Test
@@ -124,7 +124,7 @@ public class BytemanTestCase {
     
     String awakeScriptString= "RULE awake sleeping one \n" +
         "CLASS " + SLSBean.class.getName() + "\n" +
-        "METHOD callVoid \n" +
+        "METHOD call \n" +
         // "HELPER org.jboss.byteman.contrib.dtest.BytemanTestHelper \n " +
         // "AT ENTRY \n" +
         "BIND NOTHING \n" +
@@ -138,7 +138,7 @@ public class BytemanTestCase {
     Thread.sleep(3000);
     Assert.assertFalse("Expecting that future object is not done byteman script stopped it", future.isDone());
     
-    syncBean.callVoid();
+    syncBean.call();
     Thread.sleep(1000);
     Assert.assertTrue("Expecting that future is returned as byteman script for awaken was already called", future.isDone());
   }

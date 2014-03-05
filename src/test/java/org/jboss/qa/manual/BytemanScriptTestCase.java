@@ -95,8 +95,8 @@ public class BytemanScriptTestCase {
     final Context ctx = new InitialContext(jndiProperties);
     String slsbeanLookupString = "ejb:/" + DEPLOYMENT_NAME + "//" + SLSBean.class.getSimpleName() + "!" + RemoteBean.class.getName();
     RemoteBean bb = (RemoteBean) ctx.lookup(slsbeanLookupString);
-    bb.callVoid();
+    bb.call();
     
-    instrumentedClass.assertMethodCalled("callVoid");
+    instrumentedClass.assertMethodCalled("call");
   }
 }

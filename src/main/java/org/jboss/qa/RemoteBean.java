@@ -4,7 +4,7 @@ import javax.ejb.Remote;
 
 @Remote
 public interface RemoteBean {
-  void callVoid();
+  void call();
   String call(String param);
   String callAndReturn();
 }
