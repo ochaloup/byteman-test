@@ -174,4 +174,27 @@ public class BytemanTestCase {
     Assert.assertEquals("Rendezvous should be released and all data added in singleton storage "
         + "the length of the saved data is not correct", 3, singletonStorage.getStringStorage().length());
   }
+  
+  /**
+   * Using helper to do some action. In our case just simple one but it shows how the helper is defined
+   * in script. 
+   */
+  @Test
+  public void helperUsage() throws Exception {
+    log.info("method helperUsage");
+      
+    String helperUsageScript = "RULE helper_usage_script\n" +
+            "CLASS " + SLSBean.class.getName() + "\n" + 
+            "METHOD callAndReturn\n" + 
+            "HELPER org.jboss.qa.byteman.BytemanTestHelper\n" +
+            "AT EXIT\n" + 
+            "IF true\n" +
+            "DO RETURN helperPleaseSayHelloForMe()\n" +
+            "ENDRULE\n";
+    instrumentor.installScript("helper_usage_script", helperUsageScript);
+    
+    String returnetString = syncBean.callAndReturn();
+    
+    Assert.assertEquals("HELLO", returnetString);
+  }
 }

@@ -7,6 +7,7 @@ import java.util.Properties;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 import org.jboss.arquillian.container.test.api.Config;
 import org.jboss.arquillian.container.test.api.ContainerController;
@@ -42,7 +43,7 @@ public class BytemanScriptTestCase {
   protected Deployer deployer;
 
   // testable has to be set to false to have the deployment named by deployment name
-  // managed is left to be tro to arquillian do the deployment on its own
+  // managed is left to be true to arquillian do the deployment for us on its own
   @Deployment(name = DEPLOYMENT_NAME, testable = false)
   /* as default container is put being jboss-auto for this deployment would be connected
    to the jboss-manual we need to specify it explicitly */
@@ -55,8 +56,10 @@ public class BytemanScriptTestCase {
   
   public void startContainer(File scriptFile) throws IOException {
     String serverBytemanArgs = System.getProperty("jvm.args.byteman").trim();
-    // adding script at the start of the container
-    serverBytemanArgs += ",script:" + scriptFile.getCanonicalPath();    
+    if (scriptFile != null) {
+      // adding script at the start of the container
+      serverBytemanArgs += ",script:" + scriptFile.getCanonicalPath();
+    }
     // in case that someone would like debug the server
     String serverJvmDebugArguments = System.getProperty("jvm.args.debug", "").trim();
     // and let's create configuration
@@ -73,6 +76,10 @@ public class BytemanScriptTestCase {
     }
   }
   
+  /**
+   * Showing how to redirect the byteman script from instrumentator to a file where
+   * the file is then used as btm script at the manual start of the container.
+   */
   @Test
   public void redirectRulesToFile() throws Exception {
     log.info("method redirectRulesToFile");
@@ -89,14 +96,19 @@ public class BytemanScriptTestCase {
     
     startContainer(rulesFile);
     
+    RemoteBean bb = lookupBean();
+    bb.call();
+    
+    instrumentedClass.assertMethodCalled("call");
+  }
+  
+  private RemoteBean lookupBean() throws NamingException {
     // Properties to creating the intial context is taken from jboss-ejb-client.properties
     final Properties jndiProperties = new Properties();
     jndiProperties.setProperty(Context.URL_PKG_PREFIXES, "org.jboss.ejb.client.naming");
     final Context ctx = new InitialContext(jndiProperties);
     String slsbeanLookupString = "ejb:/" + DEPLOYMENT_NAME + "//" + SLSBean.class.getSimpleName() + "!" + RemoteBean.class.getName();
     RemoteBean bb = (RemoteBean) ctx.lookup(slsbeanLookupString);
-    bb.call();
-    
-    instrumentedClass.assertMethodCalled("call");
+    return bb;
   }
 }
